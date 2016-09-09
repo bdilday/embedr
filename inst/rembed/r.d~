@@ -1,4 +1,4 @@
-module embedr.r;
+module embeddedR.r;
 
 import std.algorithm, std.array, std.conv, std.exception, std.math, std.range, std.stdio, std.string, std.utf;
 
