@@ -1,0 +1,3 @@
+all:
+	rdmd cpplib.d
+
