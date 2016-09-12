@@ -1,1 +1,1 @@
-export("dmd")
+export("dmd", "dmd2")
