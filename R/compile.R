@@ -1,4 +1,4 @@
-dmd <- function(name, dlibs="") {
+dmdold <- function(name, dlibs="") {
 	# Find the necessary libraries for RInside compilation
 	librinsided <- paste0(find.package("embedr")[1], "/libs/librinsided.so")
 	module <- paste0(find.package("embedr")[1], "/embedr/r.d")
@@ -33,7 +33,7 @@ dmd <- function(name, dlibs="") {
 # You no longer need librinsided.so, which is a huge boost to installation.
 # Experimental because it's not a good idea to immediately push it.
 # You can continue to use dmd without changes.
-dmd2 <- function(name, dlibs="") {
+dmd <- function(name, dlibs="") {
 	module <- paste0(find.package("embedr")[1], "/embedr/r.d")
 	rinside <- paste0(find.package("RInsideC")[1], "/lib/libRInside.so")
 	libr <- system("locate -b '\\libR.so' -l 1", intern=TRUE)

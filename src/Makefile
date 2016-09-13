@@ -1,3 +1,0 @@
-all:
-	rdmd cpplib.d
-
