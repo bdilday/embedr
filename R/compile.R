@@ -1,4 +1,4 @@
-dmd <- function(name, dlibs="") {
+dmd <- function(name, dlibs="", other="") {
 	module <- paste0(find.package("embedr")[1], "/embedr/r.d")
 	rinside <- paste0(find.package("RInsideC")[1], "/lib/libRInside.so")
 	libr <- system("locate -b '\\libR.so' -l 1", intern=TRUE)
@@ -16,6 +16,7 @@ dmd <- function(name, dlibs="") {
 		fullAddition <- paste0(" ", mod, " ", flags)
 		cmd <- paste0(cmd, fullAddition)
 	}
+	cmd <- paste0(cmd, " ", other)
 	print(cmd)
 	out <- system(cmd, intern=TRUE)
 	print(out)

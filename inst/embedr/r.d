@@ -2,6 +2,10 @@ module embedr.r;
 
 import std.algorithm, std.array, std.conv, std.exception, std.math, std.range, std.stdio, std.string, std.utf;
 
+version(gretl) {
+	import gretl.matrix;
+}
+
 struct sexprec {}
 alias Robj = sexprec*;
 
@@ -89,7 +93,7 @@ void printR(string s) {
 }
 
 void source(string s) {
-	evalRQ(`source(` ~ s ~ `)`);
+	evalRQ(`source("` ~ s ~ `")`);
 }
 
 int length(Robj x) {
@@ -483,6 +487,18 @@ struct RMatrix {
     rows = r;
     cols = c;
   }
+  
+  version(gretl) {
+  	GretlMatrix mat() {
+  		GretlMatrix result;
+  		result.rows = this.rows;
+  		result.cols = this.cols;
+  		result.ptr = this.ptr;
+  		return result;
+  	}
+  	
+  	alias mat this;
+  }
 
   // Normally this will be a matrix allocated inside R, and as such, it will already be protected.
   // Nonetheless you have the option to protect by setting the second argument to false.
@@ -503,6 +519,13 @@ struct RMatrix {
 	// For "normal" use that's not an issue
 	this(RObject rm) {
 		this(rm.ptr);
+	}
+	
+	this(RVector v) {
+		data = v.data;
+		rows = v.rows;
+		cols = 1;
+		ptr = v.ptr;
 	}
 
   double opIndex(int r, int c) {
@@ -544,6 +567,18 @@ struct RVector {
 	int rows;
 	double * ptr;
   RObject data;
+  
+  version(gretl) {
+		GretlMatrix mat() {
+			GretlMatrix result;
+			result.rows = this.rows;
+			result.cols = 1;
+			result.ptr = this.ptr;
+			return result;
+		}
+		
+		alias mat this;
+	}
   
   this(int r) {
     Robj temp;
