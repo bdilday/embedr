@@ -145,7 +145,7 @@ void main() {
 
 # Working With R Lists
 
-Lists are very important in R, as they are the most common way to construct a heterogeneous vector. Although you could work directly with an R list (there's an `RList` struct to do that) you lose most of the nice features when you do that. For that reason I created the `NamedList` struct. You can refer to elements by number (elements are ordered as they are in any array) or by name. You can add elements by name (but only that way, because you have to name every element in a `NamedList`).
+Lists are very important in R, as they are the most common way to construct a heterogeneous vector. Although you could work directly with an R list (there's an `RList` struct to do that) you lose most of the nice features if you do. For that reason I created the `NamedList` struct. You can refer to elements by number (elements are ordered as in any array) or by name. You can add elements by name (but only that way, because every element in a `NamedList` needs a name).
 
 ```
 
@@ -154,32 +154,32 @@ import std.stdio;
 
 void main() {
   // Create a list in R
-	evalRQ(`rl <- list(a=rnorm(15), b=matrix(rnorm(100), ncol=4))`);
+  evalRQ(`rl <- list(a=rnorm(15), b=matrix(rnorm(100), ncol=4))`);
   
   // Create a NamedList struct to work with it in D
-	auto dl = NamedList("rl");
-	dl.print;
+  auto dl = NamedList("rl");
+  dl.print;
   
   // Pull out a matrix
-	auto dlm = RMatrix(dl["b"]);
-	dlm.print("This is the matrix from that list");
+  auto dlm = RMatrix(dl["b"]);
+  dlm.print("This is the matrix from that list");
   
   // Pull out a vector
-	auto dlv = RVector(dl["a"]);
-	dlv.print("This is the vector from that list");
+  auto dlv = RVector(dl["a"]);
+  dlv.print("This is the vector from that list");
 
   // Create a NamedList in D and put some R objects into it
   // NamedList holds pointers to R objects, which can be pulled
   // out using .data
-    NamedList nl;
-	nl["a"] = dlm.data;
-	nl["b"] = dlv.data;
+  NamedList nl;
+  nl["a"] = dlm.data;
+  nl["b"] = dlv.data;
   
   // Send to R as rl2
-	nl.toR("rl2");
+  nl.toR("rl2");
 	
-	// Can verify that the elements are reversed
-	printR("rl2");
+  // Can verify that the elements are reversed
+  printR("rl2");
 }
 ```
 
@@ -194,29 +194,29 @@ import std.stdio;
 void main() {
   // Create some "scalars" in R
   evalRQ(`a <- 4L`);
-	evalRQ(`b <- 4.5`);
-	evalRQ(`d <- "hello world"`);
+  evalRQ(`b <- 4.5`);
+  evalRQ(`d <- "hello world"`);
 	
-	// Print the values of those R variables from D
+  // Print the values of those R variables from D
   // Pull the integer a from R into D
-	writeln(scalar!int("a"));
+  writeln(scalar!int("a"));
   
   // Also pulls in an integer, but creates a long rather than int
-	writeln(scalar!long("a"));
+  writeln(scalar!long("a"));
   
   // The default type of scalar is double, so it is not necessary to specify the type in that case
-	writeln(scalar("b"));
+  writeln(scalar("b"));
   
   // Pull the string d from R into D
-	writeln(scalar!string("d"));
+  writeln(scalar!string("d"));
 	
   // Can also work with a string[]
-	["foo", "bar", "baz"].toR("dstring");
-	printR("dstring");
+  ["foo", "bar", "baz"].toR("dstring");
+  printR("dstring");
 	
   // Create a vector of strings in R and pull it into D as a string[]
-	evalRQ(`rstring <- c("under", "the", "bridge")`);
-	writeln(stringArray("rstring"));
+  evalRQ(`rstring <- c("under", "the", "bridge")`);
+  writeln(stringArray("rstring"));
 }
 ```
 
