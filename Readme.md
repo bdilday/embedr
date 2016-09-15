@@ -11,10 +11,8 @@ This is a tutorial to help you get started. Everything here is Linux only. It wi
 1. Install R and the [dmd compiler](http://dlang.org/download.html) (obvious, I know, but I just want to be sure). I recommend updating to the latest version of R.
 2. Install my slightly modified version of RInside, called [RInsideC](https://bitbucket.org/bachmeil/rinsidec) using devtools. In R:
     
-    ```
-    library(devtools)  
-    install_bitbucket("bachmeil/rinsidec")
-    ```
+    `library(devtools)`
+    `install_bitbucket("bachmeil/rinsidec")`
     
 3. Install the embedr package using devtools:
     
