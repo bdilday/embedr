@@ -8,19 +8,21 @@ This is a tutorial to help you get started. Everything here is Linux only. It wi
 
 # Installation
 
-1. Install R and the [dmd compiler](http://dlang.org/download.html) (obvious, I know, but I just want to be sure). I recommend updating to the latest version of R.
-2. Install my slightly modified version of RInside, called [RInsideC](https://bitbucket.org/bachmeil/rinsidec) using devtools. In R:
+1\. Install R and the [dmd compiler](http://dlang.org/download.html) (obvious, I know, but I just want to be sure). I recommend updating to the latest version of R.
+2\. Install my slightly modified version of RInside, called [RInsideC](https://bitbucket.org/bachmeil/rinsidec) using devtools. In R:
     
-    `library(devtools)`  
-    `install_bitbucket("bachmeil/rinsidec")`
+```
+library(devtools)
+install_bitbucket("bachmeil/rinsidec")
+```
     
-3. Install the embedr package using devtools:
-    
-    ```
-    install_bitbucket("bachmeil/embedr")
-    ```
+3\. Install the embedr package using devtools:
 
-That is it. If you have a standard installation (i.e., as long as you haven't done something strange to cause libR.so to be hidden in a place the system can't find it) there are no more steps to installation.
+```
+install_bitbucket("bachmeil/embedr")
+```
+
+That is it. If you have a standard installation (i.e., as long as you haven't done something strange to cause libR.so to be hidden in a place the system can't find it) you are done.
     
 # Hello World
 
