@@ -7,7 +7,7 @@ dmd <- function(name, dlibs="", other="") {
 	cmd <- paste0("dmd ", name, ".d ", module, " -L", libr, " ", rinside)
 
 	# Add compilation information about any additional packages
-	if (dlibs != "") {
+	if (!isTRUE(dlibs != "")) {
 		for (dlib in dlibs) {
 			m <- getExportedValue(dlib, "modules")()
 			mdir <- getExportedValue(dlib, "moddir")()
