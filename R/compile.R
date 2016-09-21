@@ -1,3 +1,11 @@
+computeLibs <- function(libs) {
+	dependencies <- NULL
+	for (lib in libs) {
+		dependencies <- c(dependencies, getExportedValue(lib, "deps")())
+	}
+	return(unique(c(libs, dependencies)))
+}
+
 dmd <- function(name, dlibs="", other="") {
 	module <- paste0(find.package("embedr")[1], "/embedr/r.d")
 	rinside <- paste0(find.package("RInsideC")[1], "/lib/libRInside.so")
@@ -8,7 +16,18 @@ dmd <- function(name, dlibs="", other="") {
 
 	# Add compilation information about any additional packages
 	if (isTRUE(dlibs != "")) {
-		for (dlib in dlibs) {
+		# Have to load dependencies of dependencies
+		# Pull all dlibs until the vector stops changing
+		v <- computeLibs(dlibs)
+		difference <- 1
+		while (difference > 0) {
+			v.start <- v
+			v <- computeLibs(v.start)
+			difference <- length(v) - length(v.start)
+		}
+		allLibs <- v
+		
+		for (dlib in allLibs) {
 			m <- getExportedValue(dlib, "modules")()
 			mdir <- getExportedValue(dlib, "moddir")()
 			mod <- paste0(find.package(dlib)[1], "/", mdir, "/", m, ".d", sep="", collapse=" ")
