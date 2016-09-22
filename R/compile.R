@@ -6,7 +6,7 @@ computeLibs <- function(libs) {
 	return(unique(c(libs, dependencies)))
 }
 
-dmd <- function(name, dlibs="", other="") {
+dmd <- function(name, dlibs="", other="", run=TRUE) {
 	module <- paste0(find.package("embedr")[1], "/embedr/r.d")
 	rinside <- paste0(find.package("RInsideC")[1], "/lib/libRInside.so")
 	libr <- system("locate -b '\\libR.so' -l 1", intern=TRUE)
@@ -44,8 +44,10 @@ dmd <- function(name, dlibs="", other="") {
 	print(out)
 
 	# Run the executable
-	cmd <- paste0("./", name);
-	print(cmd)
-	cat("\n\n")
-	system(cmd)
+  if (run) {
+    cmd <- paste0("./", name);
+    print(cmd)
+    cat("\n\n")
+    system(cmd)
+  }
 }
