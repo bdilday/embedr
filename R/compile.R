@@ -13,9 +13,9 @@ dmd <- function(name, dlibs="", other="", run=TRUE) {
 
 	# Construct the compilation line
 	cmd <- paste0("dmd ", name, ".d ", module, " -L", libr, " ", rinside)
-
+	
 	# Add compilation information about any additional packages
-	if (isTRUE(dlibs != "")) {
+	if (!isTRUE(dlibs == "")) {
 		# Have to load dependencies of dependencies
 		# Pull all dlibs until the vector stops changing
 		v <- computeLibs(dlibs)
