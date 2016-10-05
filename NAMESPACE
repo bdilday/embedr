@@ -1,5 +1,6 @@
 export(
 	"dmd",
 	"reload.embedr",
-	"compile"
+	"compile",
+	"compileFile"
 )
