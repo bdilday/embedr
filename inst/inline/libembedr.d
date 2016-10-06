@@ -5,6 +5,9 @@ import std.algorithm, std.array, std.conv, std.exception, std.math, std.range, s
 version(gretl) {
 	import gretl.matrix;
 }
+version(inline) {
+	private alias enforce = embedr.r.assertR;
+}
 
 struct sexprec {}
 alias Robj = sexprec*;
