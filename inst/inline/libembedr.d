@@ -1,13 +1,12 @@
 module embedr.r;
 
-import std.algorithm, std.array, std.conv, std.exception, std.math, std.range, std.stdio, std.string, std.utf;
+import std.algorithm, std.array, std.conv, std.math, std.range, std.stdio, std.string, std.utf;
 
 version(gretl) {
 	import gretl.matrix;
 }
-version(inline) {
-	alias enforce = assertR;
-}
+
+alias enforce = assertR;
 
 struct sexprec {}
 alias Robj = sexprec*;
