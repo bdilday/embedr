@@ -53,7 +53,10 @@ dmd <- function(name, dlibs="", other="", run=TRUE) {
 }
 
 # For right now, this only accommodates files that make use of Gretl
-compile <- function(code, libname, deps="", other="") {
+compile <- function(code, libname, deps="", other="", rebuild=FALSE) {
+	if (file.exists(paste0("lib", libname, ".so")) & !rebuild) {
+		return("Dynamic library already exists - pass argument rebuild=TRUE if you want to rebuild it.")
+	}
 	cat('import core.runtime;
 struct DllInfo;
 
@@ -91,8 +94,8 @@ code,
 	dyn.load(paste0("lib", libname, ".so"))
 }
 
-compileFile <- function(filename, libname, deps="", other="") {
-	compile(paste(readLines(filename), collapse="\n"), libname, deps, other)
+compileFile <- function(filename, libname, deps="", other="", rebuild=FALSE) {
+	compile(paste(readLines(filename), collapse="\n"), libname, deps, other, rebuild)
 }
 
 reload.embedr <- function() {
