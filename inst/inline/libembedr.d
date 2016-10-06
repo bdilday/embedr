@@ -5,6 +5,9 @@ import std.algorithm, std.array, std.conv, std.exception, std.math, std.range, s
 version(gretl) {
 	import gretl.matrix;
 }
+version(inline) {
+	alias enforce = assertR;
+}
 
 struct sexprec {}
 alias Robj = sexprec*;
@@ -51,6 +54,12 @@ struct RObject {
 			}
 		}
 	}
+}
+
+void assertR(bool test, string msg) {
+  if (!test) { 
+    Rf_error( "Error in D code: " ~ msg ~ "\0".toUTFz!(char*) );
+  }
 }
 
 void printR(Robj x) {
@@ -584,6 +593,10 @@ struct RVector {
     }
   }
 
+	int length() {
+		return rows;
+	}
+	
   bool empty() {
     return rows == 0;
   }

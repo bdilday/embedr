@@ -79,7 +79,7 @@ code,
 #	libr <- system("locate -b '\\libR.so' -l 1", intern=TRUE)
 	
 	# compile fPIC and so
-	cmd.fpic <- paste0("dmd -c __tmp__compile__file.d -fPIC ", apiModule, dmdgretl::fpicIncludes())
+	cmd.fpic <- paste0("dmd -c __tmp__compile__file.d -fPIC -version=inline ", apiModule, dmdgretl::fpicIncludes())
 	cmd.so <- paste0("dmd -oflib", libname, ".so __tmp__compile__file.o libembedr.o ", dmdgretl::soFlags(), " -shared -defaultlib=libphobos2.so");
 
 	print(cmd.fpic)
