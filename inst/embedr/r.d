@@ -647,6 +647,10 @@ struct RVector {
       writeln(val);
     }
   }
+  
+  int length() {
+  	return rows;
+  }
 
   bool empty() {
     return rows == 0;

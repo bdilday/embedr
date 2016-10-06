@@ -12,7 +12,7 @@ dmd <- function(name, dlibs="", other="", run=TRUE) {
 	libr <- system("locate -b '\\libR.so' -l 1", intern=TRUE)
 
 	# Construct the compilation line
-	cmd <- paste0("dmd ", name, ".d ", module, " -L", libr, " ", rinside)
+	cmd <- paste0("dmd ", name, ".d -version=r ", module, " -L", libr, " ", rinside)
 	
 	# Add compilation information about any additional packages
 	if (!isTRUE(dlibs == "")) {
