@@ -1,12 +1,10 @@
 module embedr.r;
 
-import std.algorithm, std.array, std.conv, std.math, std.range, std.stdio, std.string, std.utf;
+import std.algorithm, std.array, std.conv, std.exception, std.math, std.range, std.stdio, std.string, std.utf;
 
 version(gretl) {
 	import gretl.matrix;
 }
-
-alias enforce = assertR;
 
 struct sexprec {}
 alias Robj = sexprec*;
@@ -57,9 +55,13 @@ struct RObject {
 
 void assertR(bool test, string msg) {
   if (!test) { 
-    Rf_error( "Error in D code: " ~ msg ~ "\0".toUTFz!(char*) );
+    Rf_error( toUTFz!(char*)("Error in D code: " ~ msg) );
   }
 }
+
+//void assertR(int test, string msg) {
+ 	//assertR(test.to!bool, msg);
+//}
 
 void printR(Robj x) {
   Rf_PrintValue(x);
@@ -107,7 +109,7 @@ struct RList {
 
   // For an existing list - by default, assumes the list is already protected
   this(Robj v, bool u=false) {
-		enforce(Rf_isVectorList(v), "Cannot pass a non-list to the constructor for an RList");
+		enforce(to!bool(Rf_isVectorList(v)), "Cannot pass a non-list to the constructor for an RList");
 		data = RObject(v, u);
 		length = v.length;
 	}
@@ -194,7 +196,7 @@ struct NamedList {
   // Maybe that can be added in the future
   // Assumes it is protected
   this(Robj x) {
-		enforce(Rf_isVectorList(x), "Cannot pass a non-list to the constructor for a NamedList");
+		enforce(to!bool(Rf_isVectorList(x)), "Cannot pass a non-list to the constructor for a NamedList");
     foreach(int ii, name; x.names) {
       data ~= NamedRObject(RObject(VECTOR_ELT(x, ii)), name);
     }
