@@ -439,7 +439,7 @@ struct RMatrix {
   this(int r, int c) {
     Robj temp;
     Rf_protect(temp = Rf_allocMatrix(14, r, c));
-    data = RObject(temp);
+    data = RObject(temp, true);
     ptr = REAL(robj);
     rows = r;
     cols = c;
