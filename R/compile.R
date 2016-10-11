@@ -64,7 +64,7 @@ struct DllInfo;
 
 extern(C) {
 	void R_init_lib', libname, '(DllInfo * info) {
-		gretl.base.randInit();
+		gretl_rand_init();
 		Runtime.initialize();
 	}
 	

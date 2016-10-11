@@ -583,7 +583,7 @@ struct RVector {
   this(int r) {
     Robj temp;
     Rf_protect(temp = Rf_allocVector(14,r));
-    data = RObject(temp);
+    data = RObject(temp, true);
     rows = r;
     ptr = REAL(temp);
   }
@@ -591,7 +591,7 @@ struct RVector {
   this(Robj rv, bool u=false) {
     enforce(isVector(rv), "In RVector constructor: Cannot convert non-vector R object to RVector");
     enforce(isNumeric(rv), "In RVector constructor: Cannot convert non-numeric R object to RVector");
-    data = RObject(rv);
+    data = RObject(rv, u);
     rows = rv.length;
     ptr = REAL(rv);
   }
@@ -607,7 +607,7 @@ struct RVector {
   this(T)(T v) {
     Robj temp;
     Rf_protect(temp = Rf_allocVector(14,to!int(v.length)));
-    data = RObject(temp);
+    data = RObject(temp, true);
     rows = to!int(v.length);
     ptr = REAL(temp);
     foreach(ii; 0..to!int(v.length)) {
