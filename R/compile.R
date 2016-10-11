@@ -58,10 +58,13 @@ compile <- function(code, libname, deps="", other="", rebuild=FALSE) {
 		return("Dynamic library already exists - pass argument rebuild=TRUE if you want to rebuild it.")
 	}
 	cat('import core.runtime;
+import embedr.r, gretl.base;
+
 struct DllInfo;
 
 extern(C) {
 	void R_init_lib', libname, '(DllInfo * info) {
+		gretl.base.randInit();
 		Runtime.initialize();
 	}
 	
