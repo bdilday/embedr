@@ -64,6 +64,10 @@ struct RObject {
 	}
 }
 
+RObject robj_rc(T)(T x) {
+	return RObject(x.robj, true);
+}
+
 void assertR(bool test, string msg) {
   if (!test) { 
     Rf_error( toUTFz!(char*)("Error in D code: " ~ msg) );
@@ -239,19 +243,19 @@ struct NamedList {
   }
   
   void opIndexAssign(int val, long ii) {
-		opIndexAssign(RObject(val), ii);
+		opIndexAssign(val.robj_rc, ii);
 	}
   
   void opIndexAssign(int val, string name) {
-		opIndexAssign(RObject(val), name);
+		opIndexAssign(val.robj_rc, name);
 	}
 
   void opIndexAssign(double val, long ii) {
-		opIndexAssign(RObject(val), ii);
+		opIndexAssign(val.robj_rc, ii);
 	}
   
   void opIndexAssign(double val, string name) {
-		opIndexAssign(RObject(val), name);
+		opIndexAssign(val.robj_rc, name);
 	}
 
   void opIndexAssign(RMatrix rm, long ii) {
@@ -286,6 +290,8 @@ struct NamedList {
     opIndexAssign(RString(s), name);
   }
   
+  // Pretty sure this doesn't handle protection correctly
+  // Should be using RObject, not Robj
   void opIndexAssign(string[] rs, long ii) {
     opIndexAssign(rs.robj, ii);
   }
