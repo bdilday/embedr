@@ -69,7 +69,7 @@ RObject robj_rc(T)(T x) {
 }
 
 void assertR(bool test, string msg) {
-  if (!test) { 
+  if (!test) {
     Rf_error( toUTFz!(char*)("Error in D code: " ~ msg) );
   }
 }
