@@ -38,6 +38,14 @@ struct RObject {
 		data.unprotect = u;
 	}
 	
+	this(int val) {
+		this(val.robj, true);
+	}
+	
+	this(double val) {
+		this(val.robj, true);
+	}
+	
 	this(this) {
 		if (data.unprotect) {
 			enforce(data !is null, "data should never be null inside an RObject. You must have created an RObject without using the constructor.");
@@ -230,6 +238,22 @@ struct NamedList {
     }
   }
   
+  void opIndexAssign(int val, long ii) {
+		opIndexAssign(RObject(val), ii);
+	}
+  
+  void opIndexAssign(int val, string name) {
+		opIndexAssign(RObject(val), name);
+	}
+
+  void opIndexAssign(double val, long ii) {
+		opIndexAssign(RObject(val), ii);
+	}
+  
+  void opIndexAssign(double val, string name) {
+		opIndexAssign(RObject(val), name);
+	}
+
   void opIndexAssign(RMatrix rm, long ii) {
     opIndexAssign(rm.data, ii);
   }
