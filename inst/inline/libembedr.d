@@ -113,6 +113,7 @@ bool isInteger(Robj x) {
 struct RList {
   RObject data;
   int length; // Length of the underlying Robj, which can never change
+  string[] names;
   private int counter = 0; // Used for foreach
 
   this(int n) {
@@ -120,6 +121,7 @@ struct RList {
     Rf_protect(temp = Rf_allocVector(19, n));
     data = RObject(temp, true);
     length = n;
+    names = new string[n];
   }
 
   // For an existing list - by default, assumes the list is already protected
@@ -169,7 +171,7 @@ struct RList {
     enforce(ii < length, "RList index has to be less than the number of elements");
     opIndexAssign(rv.data, ii);
   }
-
+  
   bool empty() {
     return counter == length;
   }
@@ -183,6 +185,7 @@ struct RList {
   }
   
   Robj robj() {
+		setAttrib(data.ptr, "names", names.robj);
 		return data.ptr;
 	}
 }

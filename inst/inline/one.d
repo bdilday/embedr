@@ -1,9 +1,15 @@
 module embedr.r;
 
-import std.algorithm, std.array, std.conv, std.exception, std.math, std.range, std.stdio, std.string, std.utf;
+import std.algorithm, std.array, std.conv, std.math, std.range, std.stdio, std.string, std.utf;
 
 version(gretl) {
 	import gretl.matrix;
+}
+version(standalone) {
+	import std.exception;
+}
+version(inline) {
+	private alias enforce = embedr.r.assertR;
 }
 
 struct sexprec {}
@@ -35,6 +41,14 @@ struct RObject {
 		data.unprotect = u;
 	}
 	
+	this(int val) {
+		this(val.robj, true);
+	}
+	
+	this(double val) {
+		this(val.robj, true);
+	}
+	
 	this(this) {
 		if (data.unprotect) {
 			enforce(data !is null, "data should never be null inside an RObject. You must have created an RObject without using the constructor.");
@@ -53,32 +67,47 @@ struct RObject {
 	}
 }
 
-// C interface to RInside
-extern (C) {
-	void passToR(Robj x, char * name);
-	Robj evalInR(char * cmd);
-	void evalQuietlyInR(char * cmd);
+version(standalone) {
+	extern (C) {
+		void passToR(Robj x, char * name);
+		Robj evalInR(char * cmd);
+		void evalQuietlyInR(char * cmd);
+	}
+
+	void toR(T)(T x, string name) {
+		passToR(x.robj, toUTFz!(char*)(name));
+	}
+
+	void toR(Robj x, string name) {
+		passToR(x, toUTFz!(char*)(name));
+	}
+
+	void toR(string[] s, string name) {
+		passToR(s.robj.data.ptr, toUTFz!(char*)(name));
+	}
+
+	Robj evalR(string cmd) {
+		return evalInR(toUTFz!(char*)(cmd));
+	}
+
+	void evalRQ(string cmd) {
+		evalQuietlyInR(toUTFz!(char*)(cmd));
+	}
 }
 
-void toR(T)(T x, string name) {
-	passToR(x.robj, toUTFz!(char*)(name));
+RObject robj_rc(T)(T x) {
+	return RObject(x.robj, true);
 }
 
-void toR(Robj x, string name) {
-	passToR(x, toUTFz!(char*)(name));
+void assertR(bool test, string msg) {
+  if (!test) {
+    Rf_error( toUTFz!(char*)("Error in D code: " ~ msg) );
+  }
 }
 
-void toR(string[] s, string name) {
-	passToR(s.robj.data.ptr, toUTFz!(char*)(name));
-}
-
-Robj evalR(string cmd) {
-	return evalInR(toUTFz!(char*)(cmd));
-}
-
-void evalRQ(string cmd) {
-	evalQuietlyInR(toUTFz!(char*)(cmd));
-}
+//void assertR(int test, string msg) {
+ 	//assertR(test.to!bool, msg);
+//}
 
 void printR(Robj x) {
   Rf_PrintValue(x);
@@ -88,12 +117,14 @@ void printR(RObject x) {
 	Rf_PrintValue(x.ptr);
 }
 
-void printR(string s) {
-  evalRQ(`print(` ~ s ~ `)`);
-}
+version(standalone) {
+	void printR(string s) {
+		evalRQ(`print(` ~ s ~ `)`);
+	}
 
-void source(string s) {
-	evalRQ(`source("` ~ s ~ `")`);
+	void source(string s) {
+		evalRQ(`source("` ~ s ~ `")`);
+	}
 }
 
 int length(Robj x) {
@@ -131,19 +162,22 @@ struct RList {
     Rf_protect(temp = Rf_allocVector(19, n));
     data = RObject(temp, true);
     length = n;
+    names = new string[n];
   }
 
   // For an existing list - by default, assumes the list is already protected
   this(Robj v, bool u=false) {
-		enforce(Rf_isVectorList(v), "Cannot pass a non-list to the constructor for an RList");
+		enforce(to!bool(Rf_isVectorList(v)), "Cannot pass a non-list to the constructor for an RList");
 		data = RObject(v, u);
 		length = v.length;
 	}
 	
-	this(string name) {
-		this(evalR(name));
+	version(standalone) {
+		this(string name) {
+			this(evalR(name));
+		}
 	}
-
+	
   Robj opIndex(int ii) {
     enforce(ii < length, "RList index has to be less than the number of elements");
     return VECTOR_ELT(data.ptr, ii);
@@ -184,7 +218,7 @@ struct RList {
     enforce(ii < length, "RList index has to be less than the number of elements");
     opIndexAssign(rv.data, ii);
   }
-
+  
   bool empty() {
     return counter == length;
   }
@@ -227,16 +261,18 @@ struct NamedList {
   // Maybe that can be added in the future
   // Assumes it is protected
   this(Robj x) {
-		enforce(Rf_isVectorList(x), "Cannot pass a non-list to the constructor for a NamedList");
+		enforce(to!bool(Rf_isVectorList(x)), "Cannot pass a non-list to the constructor for a NamedList");
     foreach(int ii, name; x.names) {
       data ~= NamedRObject(RObject(VECTOR_ELT(x, ii)), name);
     }
   }
   
-  this(string name) {
-		this(evalR(name));
-	}
-
+	version(standalone) {
+		this(string name) {
+			this(evalR(name));
+		}
+  }
+  
   RObject opIndex(int ii) {
     enforce(ii < data.length, "NamedList index is greater than the length");
     return data[ii].robj;
@@ -262,6 +298,22 @@ struct NamedList {
     }
   }
   
+  void opIndexAssign(int val, long ii) {
+		opIndexAssign(val.robj_rc, ii);
+	}
+  
+  void opIndexAssign(int val, string name) {
+		opIndexAssign(val.robj_rc, name);
+	}
+
+  void opIndexAssign(double val, long ii) {
+		opIndexAssign(val.robj_rc, ii);
+	}
+  
+  void opIndexAssign(double val, string name) {
+		opIndexAssign(val.robj_rc, name);
+	}
+
   void opIndexAssign(RMatrix rm, long ii) {
     opIndexAssign(rm.data, ii);
   }
@@ -294,6 +346,8 @@ struct NamedList {
     opIndexAssign(RString(s), name);
   }
   
+  // Pretty sure this doesn't handle protection correctly
+  // Should be using RObject, not Robj
   void opIndexAssign(string[] rs, long ii) {
     opIndexAssign(rs.robj, ii);
   }
@@ -339,13 +393,15 @@ string[] stringArray(Robj sv) {
   return result;
 }
 
-string[] stringArray(string name) {
-	Robj sv = evalR(name);
-  string[] result;
-  foreach(ii; 0..Rf_length(sv)) {
-    result ~= toString(sv, ii);
-  }
-  return result;
+version(standalone) {
+	string[] stringArray(string name) {
+		Robj sv = evalR(name);
+		string[] result;
+		foreach(ii; 0..Rf_length(sv)) {
+			result ~= toString(sv, ii);
+		}
+		return result;
+	}
 }
 
 struct RString {
@@ -451,8 +507,10 @@ string scalar(T: string)(Robj rx) {
   return to!string(R_CHAR(STRING_ELT(rx,0))); 
 }
 
-double scalar(string name) {
-  return Rf_asReal(evalR(name)); 
+version(standalone) {
+	double scalar(string name) {
+		return Rf_asReal(evalR(name)); 
+	}
 }
 
 double scalar(T: double)(string name) {
@@ -513,8 +571,10 @@ struct RMatrix {
     cols = Rf_ncols(rm);
   }
   
-  this(string name) {
-		this(evalR(name));
+	version(standalone) {
+		this(string name) {
+			this(evalR(name));
+		}
 	}
 	
 	// Use this only with objects that don't need protection
@@ -598,9 +658,11 @@ struct RVector {
     ptr = REAL(rv);
   }
   
-  this(string name) {
-		this(evalR(name));
-	}
+  version(standalone) {
+		this(string name) {
+			this(evalR(name));
+		}
+	}	
   
   this(RObject rv, bool u=false) {
     this(rv.data.ptr, u);
@@ -649,11 +711,11 @@ struct RVector {
       writeln(val);
     }
   }
-  
-  int length() {
-  	return rows;
-  }
 
+	int length() {
+		return rows;
+	}
+	
   bool empty() {
     return rows == 0;
   }
