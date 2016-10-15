@@ -155,6 +155,7 @@ struct RList {
   RObject data;
   int length; // Length of the underlying Robj, which can never change
   string[] names;
+  int fillPointer = 0;
   private int counter = 0; // Used for foreach
 
   this(int n) {
@@ -218,6 +219,23 @@ struct RList {
     enforce(ii < length, "RList index has to be less than the number of elements");
     opIndexAssign(rv.data, ii);
   }
+  
+  void opIndexAssign(Robj robj, string name) {
+		put(robj, name);
+	}
+  
+  void put(Robj robj) {
+		enforce(fillPointer < length, "RList is full. Cannot add another element.");
+		opIndexAssign(robj, fillPointer);
+		fillPointer += 1;
+	}
+	
+	void put(Robj robj, string name) {
+		enforce(fillPointer < length, "RList is full. Cannot add another element.");
+		opIndexAssign(robj, fillPointer);
+		names[fillPointer] = name;
+		fillPointer += 1;
+	}
   
   bool empty() {
     return counter == length;
