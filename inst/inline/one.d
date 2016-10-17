@@ -19,7 +19,7 @@ alias Robj = sexprec*;
 // Handles unprotecting for you
 // DOES NOT DO THE *PROTECTING* OF AN R OBJECT
 // It only stores a protected object and unprotects it when there are no further references to it
-// You need to create the RObject when you allocate
+// You need to create the ProtectedRObject when you allocate
 // It is assumed that you will not touch the .robj directly
 // unprotect is needed because only some Robj will need to be unprotected
 struct RObjectStorage {
@@ -28,12 +28,12 @@ struct RObjectStorage {
 	int refcount;
 }
 
-struct RObject {
-	RObjectStorage* data;
+struct ProtectedRObject {
+	RObjectStorage * data;
 	alias data this;
 	
 	// x should already be protected
-	// RObject is for holding an Robj, not for allocating it
+	// ProtectedRObject is for holding an Robj, not for allocating it
 	this(Robj x, bool u=false) {
 		data = new RObjectStorage();
 		data.ptr = x;
@@ -51,14 +51,14 @@ struct RObject {
 	
 	this(this) {
 		if (data.unprotect) {
-			enforce(data !is null, "data should never be null inside an RObject. You must have created an RObject without using the constructor.");
+			enforce(data !is null, "data should never be null inside an ProtectedRObject. You must have created an ProtectedRObject without using the constructor.");
 			data.refcount += 1;
 		}
 	}
 	
 	~this() {
 		if (data.unprotect) {
-			enforce(data !is null, "Calling the destructor on an RObject when data is null. You must have created an RObject without using the constructor.");
+			enforce(data !is null, "Calling the destructor on an ProtectedRObject when data is null. You must have created an ProtectedRObject without using the constructor.");
 			data.refcount -= 1;
 			if (data.refcount == 0) {
 				Rf_unprotect_ptr(data.ptr);
@@ -95,10 +95,6 @@ version(standalone) {
 	}
 }
 
-RObject robj_rc(T)(T x) {
-	return RObject(x.robj, true);
-}
-
 void assertR(bool test, string msg) {
   if (!test) {
     Rf_error( toUTFz!(char*)("Error in D code: " ~ msg) );
@@ -113,7 +109,7 @@ void printR(Robj x) {
   Rf_PrintValue(x);
 }
 
-void printR(RObject x) {
+void printR(ProtectedRObject x) {
 	Rf_PrintValue(x.ptr);
 }
 
@@ -147,12 +143,10 @@ bool isInteger(Robj x) {
   return to!bool(Rf_isInteger(x));
 }
 
-// RList is for passing data from R to D in a list
-// and passing a list from D to R
-// When working with it in D, use a RObject[] instead
-// This is intended as a wrapper around a list received from R or to be passed to R
+// RList is for passing data from D to R in a list
+// It's the only way to pass multiple values back to R
 struct RList {
-  RObject data;
+  ProtectedRObject data;
   int length; // Length of the underlying Robj, which can never change
   string[] names;
   int fillPointer = 0;
@@ -161,7 +155,7 @@ struct RList {
   this(int n) {
 		Robj temp;
     Rf_protect(temp = Rf_allocVector(19, n));
-    data = RObject(temp, true);
+    data = ProtectedRObject(temp, true);
     length = n;
     names = new string[n];
   }
@@ -169,7 +163,7 @@ struct RList {
   // For an existing list - by default, assumes the list is already protected
   this(Robj v, bool u=false) {
 		enforce(to!bool(Rf_isVectorList(v)), "Cannot pass a non-list to the constructor for an RList");
-		data = RObject(v, u);
+		data = ProtectedRObject(v, u);
 		length = v.length;
 	}
 	
@@ -191,7 +185,7 @@ struct RList {
     SET_VECTOR_ELT(data.ptr, ii, x);
   }
 
-  void opIndexAssign(RObject x, int ii) {
+  void opIndexAssign(ProtectedRObject x, int ii) {
     enforce(ii < length, "RList index has to be less than the number of elements");
     SET_VECTOR_ELT(data.ptr, ii, x.ptr);
   }
@@ -256,17 +250,17 @@ struct RList {
 }
 
 private struct NamedRObject {
-  RObject robj;
+  ProtectedRObject robj;
   string name;
 }
 
 // The NamedList is used to provide a heterogeneous data structure in D
-// Holds a bunch of RObjects
+// Holds a bunch of ProtectedRObjects
 // Not used to allocate data, so you have to take care of the protection yourself
 // Protecting is always done on allocation
 /* Can use this to
    - Convert a list from R into a NamedList, for easier access to elements
-   - Access elements (RObjects) by name or by index, similar to what you do in R
+   - Access elements (ProtectedRObjects) by name or by index, similar to what you do in R
    - Add elements by name. Every element has to have a name, so that's why there is no append or any other way to add elements.
    - Change an element by name or by index. If the name doesn't exist, it is added. If the index doesn't exist, an exception is thrown.
 */
@@ -281,7 +275,7 @@ struct NamedList {
   this(Robj x) {
 		enforce(to!bool(Rf_isVectorList(x)), "Cannot pass a non-list to the constructor for a NamedList");
     foreach(int ii, name; x.names) {
-      data ~= NamedRObject(RObject(VECTOR_ELT(x, ii)), name);
+      data ~= NamedRObject(ProtectedRObject(VECTOR_ELT(x, ii)), name);
     }
   }
   
@@ -291,23 +285,23 @@ struct NamedList {
 		}
   }
   
-  RObject opIndex(int ii) {
+  ProtectedRObject opIndex(int ii) {
     enforce(ii < data.length, "NamedList index is greater than the length");
     return data[ii].robj;
   }
 
-  RObject opIndex(string name) {
+  ProtectedRObject opIndex(string name) {
     auto ind = countUntil!"a.name == b"(data, name);
     if (ind == -1) { enforce(false, "No element in the list with the name " ~ name); }
     return data[ind].robj;
   }
 
-  void opIndexAssign(RObject r, long ii) {
+  void opIndexAssign(ProtectedRObject r, long ii) {
     enforce(ii < data.length, "NamedList index is greater than the length");
     data[ii].robj = r;
   }
 
-  void opIndexAssign(RObject r, string name) {
+  void opIndexAssign(ProtectedRObject r, string name) {
     auto ind = countUntil!"a.name == b"(data, name);
     if (ind == -1) {
       data ~= NamedRObject(r, name);
@@ -365,7 +359,7 @@ struct NamedList {
   }
   
   // Pretty sure this doesn't handle protection correctly
-  // Should be using RObject, not Robj
+  // Should be using ProtectedRObject, not Robj
   void opIndexAssign(string[] rs, long ii) {
     opIndexAssign(rs.robj, ii);
   }
@@ -423,12 +417,12 @@ version(standalone) {
 }
 
 struct RString {
-  RObject data;
+  ProtectedRObject data;
   
   this(string str) {
 		Robj temp;
     Rf_protect(temp = Rf_allocVector(16, 1));
-    data = RObject(temp, true);
+    data = ProtectedRObject(temp, true);
     SET_STRING_ELT(data.ptr, 0, Rf_mkChar(toUTFz!(char*)(str)));
   }
 
@@ -441,7 +435,7 @@ Robj getAttrib(Robj x, string attr) {
   return Rf_getAttrib(x, RString(attr).robj);
 }
 
-Robj getAttrib(RObject x, string attr) {
+Robj getAttrib(ProtectedRObject x, string attr) {
   return Rf_getAttrib(x.ptr, RString(attr).robj);
 }
 
@@ -449,7 +443,7 @@ Robj getAttrib(Robj x, RString attr) {
   return Rf_getAttrib(x, attr.robj);
 }
 
-Robj getAttrib(RObject x, RString attr) {
+Robj getAttrib(ProtectedRObject x, RString attr) {
   return Rf_getAttrib(x.ptr, attr.robj);
 }
 
@@ -457,11 +451,11 @@ string[] names(Robj x) {
   return stringArray(getAttrib(x, "names"));
 }
 
-void setAttrib(Robj x, string attr, RObject val) {
+void setAttrib(Robj x, string attr, ProtectedRObject val) {
   Rf_setAttrib(x, RString(attr).robj, val.ptr);
 }
 
-void setAttrib(Robj x, RString attr, RObject val) {
+void setAttrib(Robj x, RString attr, ProtectedRObject val) {
   Rf_setAttrib(x, attr.robj, val.ptr);
 }
 
@@ -482,10 +476,10 @@ Robj robj(string s) {
   return RString(s).robj;
 }
 
-RObject robj(string[] sv) {
+ProtectedRObject robj(string[] sv) {
 	Robj temp;
 	Rf_protect(temp = Rf_allocVector(16, to!int(sv.length)));
-	RObject result = RObject(temp, true);
+	ProtectedRObject result = ProtectedRObject(temp, true);
 	foreach(ii; 0..to!int(sv.length)) {
 		SET_STRING_ELT(result.ptr, ii, Rf_mkChar(toUTFz!(char*)(sv[ii])));
 	}
@@ -552,7 +546,7 @@ string scalar(T: string)(string name) {
 }
 
 struct RMatrix {
-  RObject data;
+  ProtectedRObject data;
   int rows;
   int cols;
   double * ptr;
@@ -560,7 +554,7 @@ struct RMatrix {
   this(int r, int c) {
     Robj temp;
     Rf_protect(temp = Rf_allocMatrix(14, r, c));
-    data = RObject(temp, true);
+    data = ProtectedRObject(temp, true);
     ptr = REAL(robj);
     rows = r;
     cols = c;
@@ -583,7 +577,7 @@ struct RMatrix {
   this(Robj rm, bool u=false) {
     enforce(isMatrix(rm), "Constructing RMatrix from something not a matrix"); 
     enforce(isNumeric(rm), "Constructing RMatrix from something that is not numeric");
-    data = RObject(rm, u);
+    data = ProtectedRObject(rm, u);
     ptr = REAL(rm);
     rows = Rf_nrows(rm);
     cols = Rf_ncols(rm);
@@ -597,7 +591,7 @@ struct RMatrix {
 	
 	// Use this only with objects that don't need protection
 	// For "normal" use that's not an issue
-	this(RObject rm) {
+	this(ProtectedRObject rm) {
 		this(rm.ptr);
 	}
 	
@@ -646,7 +640,7 @@ RMatrix dup(RMatrix rm) {
 struct RVector {
 	int rows;
 	double * ptr;
-  RObject data;
+  ProtectedRObject data;
   
   version(gretl) {
 		GretlMatrix mat() {
@@ -663,7 +657,7 @@ struct RVector {
   this(int r) {
     Robj temp;
     Rf_protect(temp = Rf_allocVector(14,r));
-    data = RObject(temp, true);
+    data = ProtectedRObject(temp, true);
     rows = r;
     ptr = REAL(temp);
   }
@@ -671,7 +665,7 @@ struct RVector {
   this(Robj rv, bool u=false) {
     enforce(isVector(rv), "In RVector constructor: Cannot convert non-vector R object to RVector");
     enforce(isNumeric(rv), "In RVector constructor: Cannot convert non-numeric R object to RVector");
-    data = RObject(rv, u);
+    data = ProtectedRObject(rv, u);
     rows = rv.length;
     ptr = REAL(rv);
   }
@@ -682,14 +676,14 @@ struct RVector {
 		}
 	}	
   
-  this(RObject rv, bool u=false) {
+  this(ProtectedRObject rv, bool u=false) {
     this(rv.data.ptr, u);
   }
 
   this(T)(T v) {
     Robj temp;
     Rf_protect(temp = Rf_allocVector(14,to!int(v.length)));
-    data = RObject(temp, true);
+    data = ProtectedRObject(temp, true);
     rows = to!int(v.length);
     ptr = REAL(temp);
     foreach(ii; 0..to!int(v.length)) {
@@ -762,14 +756,14 @@ struct RVector {
 }
 
 struct RIntVector {
-  RObject data;
+  ProtectedRObject data;
   ulong length;
   int * ptr;
 
   this(int r) {
     Robj temp;
     Rf_protect(temp = Rf_allocVector(13, r));
-    data = RObject(temp);
+    data = ProtectedRObject(temp);
     length = r;
     ptr = INTEGER(temp);
   }
@@ -777,7 +771,7 @@ struct RIntVector {
   this(int[] v) {
     Robj temp;
     Rf_protect(temp = Rf_allocVector(13, to!int(v.length)));
-    data = RObject(temp);
+    data = ProtectedRObject(temp);
     length = v.length;
     ptr = INTEGER(temp);
     foreach(int ii, val; v) {
@@ -788,7 +782,7 @@ struct RIntVector {
   this(Robj rv, bool u=false) {
     enforce(isVector(rv), "In RVector constructor: Cannot convert non-vector R object to RVector");
     enforce(isInteger(rv), "In RVector constructor: Cannot convert non-integer R object to RVector");
-    data = RObject(rv);
+    data = ProtectedRObject(rv);
     length = rv.length;
     ptr = INTEGER(rv);
   }
