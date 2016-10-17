@@ -249,7 +249,7 @@ struct RList {
 }
 
 private struct NamedRObject {
-  ProtectedRObject robj;
+  ProtectedRObject prot_robj;
   string name;
 }
 
@@ -282,89 +282,6 @@ struct NamedList {
 		this(string name) {
 			this(evalR(name));
 		}
-  }
-  
-  ProtectedRObject opIndex(int ii) {
-    enforce(ii < data.length, "NamedList index is greater than the length");
-    return data[ii].robj;
-  }
-
-  ProtectedRObject opIndex(string name) {
-    auto ind = countUntil!"a.name == b"(data, name);
-    if (ind == -1) { enforce(false, "No element in the list with the name " ~ name); }
-    return data[ind].robj;
-  }
-
-  void opIndexAssign(ProtectedRObject r, long ii) {
-    enforce(ii < data.length, "NamedList index is greater than the length");
-    data[ii].robj = r;
-  }
-
-  void opIndexAssign(ProtectedRObject r, string name) {
-    auto ind = countUntil!"a.name == b"(data, name);
-    if (ind == -1) {
-      data ~= NamedRObject(r, name);
-    } else {
-      data[ind].robj = r;
-    }
-  }
-  
-  void opIndexAssign(int val, long ii) {
-		opIndexAssign(val.robj_rc, ii);
-	}
-  
-  void opIndexAssign(int val, string name) {
-		opIndexAssign(val.robj_rc, name);
-	}
-
-  void opIndexAssign(double val, long ii) {
-		opIndexAssign(val.robj_rc, ii);
-	}
-  
-  void opIndexAssign(double val, string name) {
-		opIndexAssign(val.robj_rc, name);
-	}
-
-  void opIndexAssign(RMatrix rm, long ii) {
-    opIndexAssign(rm.data, ii);
-  }
-  
-  void opIndexAssign(RMatrix rm, string name) {
-    opIndexAssign(rm.data, name);
-  }
-  
-  void opIndexAssign(RVector rv, long ii) {
-    opIndexAssign(rv.data, ii);
-  }
-  
-  void opIndexAssign(RVector rv, string name) {
-    opIndexAssign(rv.data, name);
-  }
-  
-  void opIndexAssign(RString rs, long ii) {
-    opIndexAssign(rs.data, ii);
-  }
-  
-  void opIndexAssign(RString rs, string name) {
-    opIndexAssign(rs.data, name);
-  }
-  
-  void opIndexAssign(string s, long ii) {
-    opIndexAssign(RString(s), ii);
-  }
-  
-  void opIndexAssign(string s, string name) {
-    opIndexAssign(RString(s), name);
-  }
-  
-  // Pretty sure this doesn't handle protection correctly
-  // Should be using ProtectedRObject, not Robj
-  void opIndexAssign(string[] rs, long ii) {
-    opIndexAssign(rs.robj, ii);
-  }
-  
-  void opIndexAssign(string[] rs, string name) {
-    opIndexAssign(rs.robj, name);
   }
   
   Robj robj() {
