@@ -65,6 +65,10 @@ struct ProtectedRObject {
 			}
 		}
 	}
+	
+	Robj robj() {
+		return data.ptr;
+	}
 }
 
 version(standalone) {
@@ -110,7 +114,7 @@ void printR(Robj x) {
 }
 
 void printR(ProtectedRObject x) {
-	Rf_PrintValue(x.ptr);
+	Rf_PrintValue(x.robj);
 }
 
 version(standalone) {
@@ -175,60 +179,63 @@ struct RList {
 	
   Robj opIndex(int ii) {
     enforce(ii < length, "RList index has to be less than the number of elements");
-    return VECTOR_ELT(data.ptr, ii);
-  }
-
-  // Used when passing data to R
-	// If you put an Robj in a list, it can be unprotected, because anything in a protected list is protected
-  void opIndexAssign(Robj x, int ii) {
-    enforce(ii < length, "RList index has to be less than the number of elements");
-    SET_VECTOR_ELT(data.ptr, ii, x);
-  }
-
-  void opIndexAssign(ProtectedRObject x, int ii) {
-    enforce(ii < length, "RList index has to be less than the number of elements");
-    SET_VECTOR_ELT(data.ptr, ii, x.ptr);
+    return VECTOR_ELT(data.robj, ii);
   }
   
-  void opIndexAssign(RString rs, int ii) {
-    enforce(ii < length, "RList index has to be less than the number of elements");
-    opIndexAssign(rs.data, ii);
-  }
-  
-  void opIndexAssign(string s, int ii) {
-    opIndexAssign(RString(s), ii);
-  }
-  
-  void opIndexAssign(string[] sv, int ii) {
-    enforce(ii < length, "RList index has to be less than the number of elements");
-    opIndexAssign(sv.robj, ii);
-  }
-
-  void opIndexAssign(RMatrix rm, int ii) {
-    enforce(ii < length, "RList index has to be less than the number of elements");
-    opIndexAssign(rm.data, ii);
-  }
-
-  void opIndexAssign(RVector rv, int ii) {
-    enforce(ii < length, "RList index has to be less than the number of elements");
-    opIndexAssign(rv.data, ii);
-  }
-  
-  void opIndexAssign(Robj robj, string name) {
-		put(robj, name);
+  void unsafePut(Robj x, int, ii) {
+		enforce(ii < length, "RList index has to be less than the number of elements. Index " ~ to!string(ii) ~ " >= length " ~ to!string(length));
+		SET_VECTOR_ELT(data.robj, ii, x);
 	}
-  
-  void put(Robj robj) {
-		enforce(fillPointer < length, "RList is full. Cannot add another element.");
-		opIndexAssign(robj, fillPointer);
+	
+	void put(Robj x, string name) {
+		enforce(fillPointer < length, "RList is full - cannot add more elements");
+		SET_VECTOR_ELT(data.robj, fillPointer, x);
+		names[fillPointer] = name;
 		fillPointer += 1;
 	}
 	
-	void put(Robj robj, string name) {
-		enforce(fillPointer < length, "RList is full. Cannot add another element.");
-		opIndexAssign(robj, fillPointer);
-		names[fillPointer] = name;
-		fillPointer += 1;
+	void put(Robj x) {
+		put(x, "");
+	}
+	
+	void opIndexAssign(Robj x, string name) {
+		put(x, name);
+	}
+
+  // No opIndexAssign(Robj, int): Use unsafePut instead
+  // Not clear what is going on if we allow rl[3] = x notation
+  // Should not usually want to put an element into a specific index
+  
+  void opIndexAssign(RMatrix rm, string name) {
+    put(rm.robj, name);
+  }
+
+  void opIndexAssign(RVector rv, string name) {
+    put(rv.robj, name);
+  }
+  
+  void opIndexAssign(RString rs, string name) {
+    put(rs.robj, name);
+  }
+  
+  void opIndexAssign(string s, string name) {
+    put(s.robj, name);
+  }
+  
+  void opIndexAssign(string[] sv, string name) {
+    put(sv.robj, name);
+  }
+  
+  void opIndexAssign(double v, string name) {
+		put(v.robj, name);
+	}
+	
+	void opIndexAssign(double[] vec, string name) {
+		put(vec.robj, name);
+	}
+	
+	void opIndexAssign(int v, string name) {
+		put(v.robj, name);
 	}
   
   bool empty() {
@@ -244,8 +251,8 @@ struct RList {
   }
   
   Robj robj() {
-		setAttrib(data.ptr, "names", names.robj);
-		return data.ptr;
+		setAttrib(data.robj, "names", names.robj);
+		return data.robj;
 	}
 }
 
