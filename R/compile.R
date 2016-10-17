@@ -78,12 +78,12 @@ code,
 '
 ', file="__tmp__compile__file.d", sep="")
 	# Save code to file with temporary name
-	apiModule <- paste0(find.package("embedr")[1], "/inline/libembedr.d")
-#	libr <- system("locate -b '\\libR.so' -l 1", intern=TRUE)
+	#apiModule <- paste0(find.package("embedr")[1], "/inline/libembedr.d")
+	apiModule <- paste0(find.package("embedr")[1], "/inline/one.d")
 	
 	# compile fPIC and so
 	cmd.fpic <- paste0("dmd -c __tmp__compile__file.d -fPIC -version=inline ", apiModule, dmdgretl::fpicIncludes())
-	cmd.so <- paste0("dmd -oflib", libname, ".so __tmp__compile__file.o libembedr.o ", dmdgretl::soFlags(), " -shared -defaultlib=libphobos2.so");
+	cmd.so <- paste0("dmd -oflib", libname, ".so __tmp__compile__file.o one.o ", dmdgretl::soFlags(), " -shared -defaultlib=libphobos2.so");
 
 	print(cmd.fpic)
 	out.fpic <- system(cmd.fpic, intern=TRUE)

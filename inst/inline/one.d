@@ -174,7 +174,7 @@ struct RList {
     return VECTOR_ELT(data.robj, ii);
   }
   
-  void unsafePut(Robj x, int, ii) {
+  void unsafePut(Robj x, int ii) {
 		enforce(ii < length, "RList index has to be less than the number of elements. Index " ~ to!string(ii) ~ " >= length " ~ to!string(length));
 		SET_VECTOR_ELT(data.robj, ii, x);
 	}
@@ -215,7 +215,7 @@ struct RList {
   }
   
   void opIndexAssign(string[] sv, string name) {
-    put(sv.robj, name);
+    put(RStringArray(sv).robj, name);
   }
   
   void opIndexAssign(double v, string name) {
@@ -251,6 +251,10 @@ struct RList {
 private struct NamedRObject {
   ProtectedRObject prot_robj;
   string name;
+  
+  Robj robj() {
+		return prot_robj.robj;
+	}
 }
 
 // The NamedList is used to provide a heterogeneous data structure in D
@@ -286,14 +290,10 @@ struct NamedList {
   
   Robj robj() {
     auto rl = RList(to!int(data.length));
-    string[] names;
-    foreach(int ii, val; data) {
-      rl[ii] = val.robj.ptr;
-      names ~= val.name;
+    foreach(val; data) {
+      rl[val.name] = val.robj;
     }
-    Robj result = rl.robj;
-    setAttrib(result, "names", names.robj);
-    return result;
+    return rl.robj;
   }
 
   void print() {
@@ -375,6 +375,14 @@ void setAttrib(Robj x, RString attr, ProtectedRObject val) {
   Rf_setAttrib(x, attr.robj, val.robj);
 }
 
+void setAttrib(Robj x, string attr, Robj val) {
+  Rf_setAttrib(x, RString(attr).robj, val);
+}
+
+void setAttrib(Robj x, RString attr, Robj val) {
+  Rf_setAttrib(x, attr.robj, val);
+}
+
 Robj robj(double x) {
   return Rf_ScalarReal(x);
 }
@@ -393,6 +401,10 @@ Robj robj(string s) {
 }
 
 Robj robj(string[] sv) {
+	return RStringArray(sv).robj;
+}
+
+ProtectedRObject RStringArray(string[] sv) {
 	Robj temp;
 	Rf_protect(temp = Rf_allocVector(16, to!int(sv.length)));
 	auto result = ProtectedRObject(temp, true);
