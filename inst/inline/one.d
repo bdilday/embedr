@@ -41,14 +41,6 @@ struct ProtectedRObject {
 		data.unprotect = u;
 	}
 	
-	this(int val) {
-		this(val.robj, true);
-	}
-	
-	this(double val) {
-		this(val.robj, true);
-	}
-	
 	this(this) {
 		if (data.unprotect) {
 			enforce(data !is null, "data should never be null inside an ProtectedRObject. You must have created an ProtectedRObject without using the constructor.");
