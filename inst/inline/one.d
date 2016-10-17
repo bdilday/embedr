@@ -368,11 +368,11 @@ string[] names(Robj x) {
 }
 
 void setAttrib(Robj x, string attr, ProtectedRObject val) {
-  Rf_setAttrib(x, RString(attr).robj, val.ptr);
+  Rf_setAttrib(x, RString(attr).robj, val.robj);
 }
 
 void setAttrib(Robj x, RString attr, ProtectedRObject val) {
-  Rf_setAttrib(x, attr.robj, val.ptr);
+  Rf_setAttrib(x, attr.robj, val.robj);
 }
 
 Robj robj(double x) {
@@ -392,12 +392,12 @@ Robj robj(string s) {
   return RString(s).robj;
 }
 
-ProtectedRObject robj(string[] sv) {
+Robj robj(string[] sv) {
 	Robj temp;
 	Rf_protect(temp = Rf_allocVector(16, to!int(sv.length)));
-	ProtectedRObject result = ProtectedRObject(temp, true);
+	auto result = ProtectedRObject(temp, true);
 	foreach(ii; 0..to!int(sv.length)) {
-		SET_STRING_ELT(result.ptr, ii, Rf_mkChar(toUTFz!(char*)(sv[ii])));
+		SET_STRING_ELT(result.robj, ii, Rf_mkChar(toUTFz!(char*)(sv[ii])));
 	}
 	return result;
 }
@@ -471,7 +471,7 @@ struct RMatrix {
     Robj temp;
     Rf_protect(temp = Rf_allocMatrix(14, r, c));
     data = ProtectedRObject(temp, true);
-    ptr = REAL(robj);
+    ptr = REAL(temp);
     rows = r;
     cols = c;
   }
@@ -533,7 +533,7 @@ struct RMatrix {
   }
 
   Robj robj() {
-    return data.data.ptr;
+    return data.robj;
   }
 }
 
@@ -593,7 +593,7 @@ struct RVector {
 	}	
   
   this(ProtectedRObject rv, bool u=false) {
-    this(rv.data.ptr, u);
+    this(rv.robj, u);
   }
 
   this(T)(T v) {
@@ -630,6 +630,7 @@ struct RVector {
 		RVector result = this;
 		result.rows = j-i;
 		result.ptr = &ptr[i];
+		result.data = data;
 		return result;
 	}
 
@@ -667,7 +668,7 @@ struct RVector {
   }
 
   Robj robj() {
-    return data.ptr;
+    return data.robj;
   }
 }
 
@@ -679,7 +680,7 @@ struct RIntVector {
   this(int r) {
     Robj temp;
     Rf_protect(temp = Rf_allocVector(13, r));
-    data = ProtectedRObject(temp);
+    data = ProtectedRObject(temp, true);
     length = r;
     ptr = INTEGER(temp);
   }
@@ -758,7 +759,7 @@ struct RIntVector {
   }
   
   Robj robj() {
-    return data.ptr;
+    return data.robj;
   }
 }
 
