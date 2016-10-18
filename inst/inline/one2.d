@@ -140,7 +140,13 @@ bool isInteger(Robj x) {
 }
 
 // RList is for passing data from D to R in a list
+<<<<<<< Updated upstream
 // It's the only way to pass multiple values back to R
+=======
+// To unpack a list passed from R to D, use a NamedList struct
+// I think this was storing a pointer to RObject when passing an RVector,
+// not a pointer to an Robj
+>>>>>>> Stashed changes
 struct RList {
   ProtectedRObject data;
   int length; // Length of the underlying Robj, which can never change
@@ -194,6 +200,7 @@ struct RList {
 		put(x, name);
 	}
 
+<<<<<<< Updated upstream
   // No opIndexAssign(Robj, int): Use unsafePut instead
   // Not clear what is going on if we allow rl[3] = x notation
   // Should not usually want to put an element into a specific index
@@ -216,11 +223,60 @@ struct RList {
   
   void opIndexAssign(string[] sv, string name) {
     put(RStringArray(sv).robj, name);
+=======
+  void unsafePut(Robj robj, int ii) {
+		enforce(ii < length, "Index " ~ to!string(ii) ~ " exceeds the number of elements allocated for RList (" ~ to!string(length) ~ ").");
+		SET_VECTOR_ELT(data.ptr, ii, robj);
+	}
+
+  void put(Robj robj) {
+		enforce(fillPointer < length, "RList is full. Cannot add another element.");
+		SET_VECTOR_ELT(data.ptr, fillPointer, robj);
+		fillPointer += 1;
+	}
+
+	void put(Robj robj, string name) {
+		enforce(fillPointer < length, "RList is full. Cannot add another element.");
+		SET_VECTOR_ELT(data.ptr, fillPointer, robj);
+		names[fillPointer] = name;
+		fillPointer += 1;
+	}
+
+  // Used when passing data to R
+	// If you put an Robj in a list, it can be unprotected, because anything in a protected list is protected
+  //~ void opIndexAssign(Robj x, int ii) {
+    //~ enforce(ii < length, "RList index has to be less than the number of elements");
+    //~ SET_VECTOR_ELT(data.ptr, ii, x);
+  //~ }
+//~ 
+  //~ void opIndexAssign(RObject x, int ii) {
+    //~ enforce(ii < length, "RList index has to be less than the number of elements");
+    //~ SET_VECTOR_ELT(data.ptr, ii, x.ptr);
+  //~ }
+  
+  void opIndexAssign(RString rs, string name) {
+    put(rs.robj, name);
+  }
+  
+  void opIndexAssign(string[] sv, string name) {
+    put(sv.robj.ptr, name);
+  }
+
+  void opIndexAssign(RMatrix rm, int ii) {
+    enforce(ii < length, "RList index has to be less than the number of elements");
+    opIndexAssign(rm.data, ii);
+  }
+
+  void opIndexAssign(RVector rv, int ii) {
+    enforce(ii < length, "RList index has to be less than the number of elements");
+    opIndexAssign(rv.data, ii);
+>>>>>>> Stashed changes
   }
   
   void opIndexAssign(double v, string name) {
 		put(v.robj, name);
 	}
+<<<<<<< Updated upstream
 	
 	void opIndexAssign(double[] vec, string name) {
 		put(vec.robj, name);
@@ -229,6 +285,8 @@ struct RList {
 	void opIndexAssign(int v, string name) {
 		put(v.robj, name);
 	}
+=======
+>>>>>>> Stashed changes
   
   bool empty() {
     return counter == length;
