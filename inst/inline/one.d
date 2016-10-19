@@ -79,7 +79,7 @@ version(standalone) {
 	}
 
 	void toR(string[] s, string name) {
-		passToR(s.robj.data.ptr, toUTFz!(char*)(name));
+		passToR(s.robj, toUTFz!(char*)(name));
 	}
 
 	Robj evalR(string cmd) {
@@ -610,7 +610,7 @@ struct RVector {
 
   this(T)(T v) {
     Robj temp;
-    Rf_protect(temp = Rf_allocVector(14,to!int(v.length)));
+    Rf_protect(temp = Rf_allocVector(14, to!int(v.length)));
     data = ProtectedRObject(temp, true);
     rows = to!int(v.length);
     ptr = REAL(temp);
