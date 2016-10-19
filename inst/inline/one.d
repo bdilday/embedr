@@ -543,6 +543,28 @@ struct RMatrix {
   void opAssign(double val) {
     ptr[0..this.rows*this.cols] = val;
   }
+  
+  version(gretl) {
+		void opAssign(T)(T m) if (is(T == DoubleMatrix) || is(T == GretlMatrix)) {
+			Robj temp;
+			Rf_protect(temp = Rf_allocMatrix(14, m.rows, m.cols));
+			data = ProtectedRObject(temp, true);
+			ptr = REAL(temp);
+			rows = m.rows;
+			cols = m.cols;
+			ptr[0..m.rows*m.cols] = m.ptr[0..m.rows*m.cols];
+		}
+	}
+
+	void opAssign(RMatrix m) {
+		Robj temp;
+		Rf_protect(temp = Rf_allocMatrix(14, m.rows, m.cols));
+		data = ProtectedRObject(temp, true);
+		ptr = REAL(temp);
+		rows = m.rows;
+		cols = m.cols;
+		ptr[0..m.rows*m.cols] = m.ptr[0..m.rows*m.cols];
+	}
 
   Robj robj() {
     return data.robj;
