@@ -89,6 +89,12 @@ version(standalone) {
 	void evalRQ(string cmd) {
 		evalQuietlyInR(toUTFz!(char*)(cmd));
 	}
+
+	void evalRQ(string[] cmds) {
+		foreach(cmd; cmds) {
+			evalQuietlyInR(toUTFz!(char*)(cmd));
+		}
+	}
 }
 
 void assertR(bool test, string msg) {
