@@ -7,8 +7,7 @@ computeLibs <- function(libs) {
 }
 
 dmd <- function(name, dlibs="", other="", run=TRUE) {
-	# module <- paste0(find.package("embedr")[1], "/embedr/r.d")
-	module <- paste0(find.package("embedr")[1], "/inline/one.d")
+	module <- paste0(find.package("embedr")[1], "/embedr/r.d")
 	rinside <- paste0(find.package("RInsideC")[1], "/lib/libRInside.so")
 	libr <- system("locate -b '\\libR.so' -l 1", intern=TRUE)
 
@@ -80,8 +79,7 @@ code,
 '
 ', file="__tmp__compile__file.d", sep="")
 	# Save code to file with temporary name
-	#apiModule <- paste0(find.package("embedr")[1], "/inline/libembedr.d")
-	apiModule <- paste0(find.package("embedr")[1], "/inline/one.d")
+	apiModule <- paste0(find.package("embedr")[1], "/embedr/r.d")
 	
 	# compile fPIC and so
 	cmd.fpic <- paste0("dmd -c __tmp__compile__file.d -fPIC -version=inline ", apiModule, dmdgretl::fpicIncludes())
