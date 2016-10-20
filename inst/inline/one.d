@@ -566,6 +566,14 @@ struct RMatrix {
 		ptr[0..m.rows*m.cols] = m.ptr[0..m.rows*m.cols];
 	}
 
+  version(gretl) {
+		void opAssign(T)(T m) if (is(T == DoubleMatrix) || is(T == GretlMatrix)) {
+			enforce(rows == m.rows, "Number of rows in source (" ~ to!string(m.rows) ~ ") is different from number of rows in destination (" ~ rows ~ ").");
+			enforce(cols == m.cols, "Number of columns in source (" ~ to!string(m.rows) ~ ") is different from number of columns in destination (" ~ rows ~ ").");
+			ptr[0..m.rows*m.cols] = m.ptr[0..m.rows*m.cols];
+		}
+	}
+
   Robj robj() {
     return data.robj;
   }
