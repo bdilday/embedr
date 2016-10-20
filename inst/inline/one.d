@@ -489,6 +489,18 @@ struct RMatrix {
   }
   
   version(gretl) {
+		this(T)(T m) if (is(T == DoubleMatrix) || is(T == GretlMatrix)) {
+			Robj temp;
+			Rf_protect(temp = Rf_allocMatrix(14, m.rows, m.cols));
+			data = ProtectedRObject(temp, true);
+			ptr = REAL(temp);
+			rows = m.rows;
+			cols = m.cols;
+			ptr[0..m.rows*m.cols] = m.ptr[0..m.rows*m.cols];
+		}
+	}
+
+  version(gretl) {
   	GretlMatrix mat() {
   		GretlMatrix result;
   		result.rows = this.rows;
@@ -544,18 +556,6 @@ struct RMatrix {
     ptr[0..this.rows*this.cols] = val;
   }
   
-  version(gretl) {
-		void opAssign(T)(T m) if (is(T == DoubleMatrix) || is(T == GretlMatrix)) {
-			Robj temp;
-			Rf_protect(temp = Rf_allocMatrix(14, m.rows, m.cols));
-			data = ProtectedRObject(temp, true);
-			ptr = REAL(temp);
-			rows = m.rows;
-			cols = m.cols;
-			ptr[0..m.rows*m.cols] = m.ptr[0..m.rows*m.cols];
-		}
-	}
-
 	void opAssign(RMatrix m) {
 		Robj temp;
 		Rf_protect(temp = Rf_allocMatrix(14, m.rows, m.cols));
