@@ -7,9 +7,11 @@ version(gretl) {
 }
 version(standalone) {
 	import std.exception;
+	pragma(msg, "imported std.exception");
 }
 version(inline) {
 	private alias enforce = embedr.r.assertR;
+	pragma(msg, "aliased enforce");
 }
 
 struct sexprec {}
@@ -673,12 +675,19 @@ struct RVector {
   }
   
   RVector opSlice(int i, int j) {
-		enforce(j < rows, "Index out of range: index on RVector slice is too large");
-		enforce(i < j, "First index has to be less than second index");
+		writeln("entering...");
+		writeln(i, " ", j);
+		writeln(j < rows);
+		//std.exception.enforce(j < rows, "Index out of range: index on RVector slice is too large");
+		writeln("in opslice");
+		//enforce(i < j, "First index has to be less than second index");
+		writeln("in opslice");
 		RVector result = this;
+		writeln("in opslice");
 		result.rows = j-i;
 		result.ptr = &ptr[i];
 		result.data = data;
+		writeln("done...");
 		return result;
 	}
 
