@@ -7,11 +7,9 @@ version(gretl) {
 }
 version(standalone) {
   import std.exception;
-  pragma(msg, "imported std.exception");
 }
 version(inline) {
   private alias enforce = embedr.r.assertR;
-  pragma(msg, "aliased enforce");
 }
 
 struct sexprec {}
