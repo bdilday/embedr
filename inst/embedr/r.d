@@ -159,10 +159,13 @@ struct RList {
   }
 
   // For an existing list - by default, assumes the list is already protected
+  // This list is full by construction
   this(Robj v, bool u=false) {
     enforce(to!bool(Rf_isVectorList(v)), "Cannot pass a non-list to the constructor for an RList");
     data = ProtectedRObject(v, u);
     length = v.length;
+    names = v.names;
+    fillPointer = v.length;
   }
 	
   version(standalone) {
@@ -177,9 +180,9 @@ struct RList {
   }
   
 	Robj opIndex(string name) {
-    auto ind = countUntil!"a.name == b"(names, name);
+    auto ind = countUntil!"a == b"(names, name);
     if (ind == -1) { enforce(false, "No element in the list with the name " ~ name); }
-    return opIndex(ind);
+    return opIndex(ind.to!int);
 	}
   
   void unsafePut(Robj x, int ii) {
