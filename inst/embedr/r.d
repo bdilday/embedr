@@ -176,6 +176,12 @@ struct RList {
     return VECTOR_ELT(data.robj, ii);
   }
   
+	Robj opIndex(string name) {
+    auto ind = countUntil!"a.name == b"(names, name);
+    if (ind == -1) { enforce(false, "No element in the list with the name " ~ name); }
+    return opIndex(ind);
+	}
+  
   void unsafePut(Robj x, int ii) {
     enforce(ii < length, "RList index has to be less than the number of elements. Index " ~ to!string(ii) ~ " >= length " ~ to!string(length));
     SET_VECTOR_ELT(data.robj, ii, x);
@@ -714,6 +720,14 @@ struct RVector {
   Robj robj() {
     return data.robj;
   }
+}
+
+double fromLast(RVector rv, int ii) {
+	return rv[rv.length-ii-1];
+}
+
+double last(RVector rv) {
+	return rv[rv.length-1];
 }
 
 struct RIntVector {
