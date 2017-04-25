@@ -667,7 +667,7 @@ struct RVector {
   
   RVector opIndex(int[] obs) {
 		auto result = RVector(obs.length);
-		foreach(ii; 0..obs.length) {
+		foreach(int ii; 0..obs.length) {
 			result[ii] = this[obs[ii]];
 		}
 		return result;
