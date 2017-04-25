@@ -664,6 +664,14 @@ struct RVector {
     enforce(r < rows, "Index out of range: index on RVector is too large");
     return ptr[r];
   }
+  
+  RVector opIndex(int[] obs) {
+		auto result = RVector(obs.length);
+		foreach(ii; 0..obs.length) {
+			result[ii] = this[obs[ii]];
+		}
+		return result;
+	}
 
   void opIndexAssign(double v, int r) {
     enforce(r < rows, "Index out of range: index on RVector is too large");
