@@ -686,7 +686,7 @@ struct RVector {
   }
   
   RVector opSlice(int i, int j) {
-    enforce(j < rows, "Index out of range: index on RVector slice is too large");
+    enforce(j < rows, "Index out of range: index on RVector slice is too large. index=" ~ to!string(j) ~ " # rows=" ~ to!string(rows));
     enforce(i < j, "First index has to be less than second index");
     RVector result = this;
     result.rows = j-i;
