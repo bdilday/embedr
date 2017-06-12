@@ -897,6 +897,7 @@ extern (C) {
   Robj Rf_setAttrib(Robj x, Robj attr, Robj val);
   Robj Rf_mkChar(const char * str);
   void Rf_error(const char * msg);
+  void R_CheckUserInterrupt();
     
   // type is 0 for NILSXP, 13 for integer, 14 for real, 19 for VECSXP
   Robj Rf_allocVector(uint type, int n);
