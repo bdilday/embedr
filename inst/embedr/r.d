@@ -809,6 +809,21 @@ struct RIntVector {
   }
 }
 
+string createRLibrary(string name) {
+	return "import core.runtime;
+struct DllInfo;
+export extern(C) {
+  void R_init_lib" ~ name ~ "(DllInfo * info) {
+    Runtime.initialize();
+  }
+  
+  void R_unload_lib" ~ name ~ "(DllInfo * info) {
+    Runtime.terminate();
+  }
+}
+";
+}
+
 // Constants pulled from the R API, for compatibility
 immutable double M_E=2.718281828459045235360287471353;
 immutable double M_LOG2E=1.442695040888963407359924681002;
