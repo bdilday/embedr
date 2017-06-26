@@ -7,11 +7,9 @@ version(gretl) {
 }
 version(standalone) {
   import std.exception;
-  pragma(msg, "imported std.exception");
 }
 version(inline) {
   private alias enforce = embedr.r.assertR;
-  pragma(msg, "aliased enforce");
 }
 
 struct sexprec {}
@@ -161,10 +159,13 @@ struct RList {
   }
 
   // For an existing list - by default, assumes the list is already protected
+  // This list is full by construction
   this(Robj v, bool u=false) {
     enforce(to!bool(Rf_isVectorList(v)), "Cannot pass a non-list to the constructor for an RList");
     data = ProtectedRObject(v, u);
     length = v.length;
+    names = v.names;
+    fillPointer = v.length;
   }
 	
   version(standalone) {
@@ -177,6 +178,12 @@ struct RList {
     enforce(ii < length, "RList index has to be less than the number of elements");
     return VECTOR_ELT(data.robj, ii);
   }
+  
+	Robj opIndex(string name) {
+    auto ind = countUntil!"a == b"(names, name);
+    if (ind == -1) { enforce(false, "No element in the list with the name " ~ name); }
+    return opIndex(ind.to!int);
+	}
   
   void unsafePut(Robj x, int ii) {
     enforce(ii < length, "RList index has to be less than the number of elements. Index " ~ to!string(ii) ~ " >= length " ~ to!string(length));
@@ -657,6 +664,14 @@ struct RVector {
     enforce(r < rows, "Index out of range: index on RVector is too large");
     return ptr[r];
   }
+  
+  RVector opIndex(int[] obs) {
+		auto result = RVector(to!int(obs.length));
+		foreach(ii; 0..to!int(obs.length)) {
+			result[ii] = this[obs[ii]];
+		}
+		return result;
+	}
 
   void opIndexAssign(double v, int r) {
     enforce(r < rows, "Index out of range: index on RVector is too large");
@@ -671,7 +686,7 @@ struct RVector {
   }
   
   RVector opSlice(int i, int j) {
-    enforce(j < rows, "Index out of range: index on RVector slice is too large");
+    enforce(j <= rows, "Index out of range: index on RVector slice is too large. index=" ~ to!string(j) ~ " # rows=" ~ to!string(rows));
     enforce(i < j, "First index has to be less than second index");
     RVector result = this;
     result.rows = j-i;
@@ -716,6 +731,14 @@ struct RVector {
   Robj robj() {
     return data.robj;
   }
+}
+
+double fromLast(RVector rv, int ii) {
+	return rv[rv.length-ii-1];
+}
+
+double last(RVector rv) {
+	return rv[rv.length-1];
 }
 
 struct RIntVector {
@@ -889,6 +912,7 @@ extern (C) {
   Robj Rf_setAttrib(Robj x, Robj attr, Robj val);
   Robj Rf_mkChar(const char * str);
   void Rf_error(const char * msg);
+  void R_CheckUserInterrupt();
     
   // type is 0 for NILSXP, 13 for integer, 14 for real, 19 for VECSXP
   Robj Rf_allocVector(uint type, int n);

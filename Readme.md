@@ -4,7 +4,7 @@ D is a nice programming language, but I make my living doing econometrics, and t
 
 I took an alternative route. I used the excellent [RInside](https://github.com/eddelbuettel/rinside) to embed an R interpreter inside my D program. Data is passed efficiently because everything in R is a C struct (SEXPREC). These SEXPREC structs are allocated in either D or R and pointers to them are passed around.
 
-This is a tutorial to help you get started. Everything here is Linux only. It will work on Windows and Mac as well, because the communication is done by RInside (which works on all three OSes), but I only have access to D machines for development. If you are using Windows 10, you can use Bash on Windows.
+This is a tutorial to help you get started. Everything here is Linux only. It will work on Windows and Mac as well, because the communication is done by RInside (which works on all three OSes), but I don't know much about them. If you are using Windows 10, you can use Bash on Windows. If you want to use Docker, I've got a Dockerfile and explanation of how to use it [here](https://lancebachmeier.com/embedr/dockerusage.html).
 
 # Installation
 
@@ -221,7 +221,3 @@ void main() {
 ```
 
 There is more functionality available (the entire R API, in fact) but the single goal of this library is to facilitate the passing of commonly-used data types between the two languages. Other libraries are available for the functions in the R standalone math library, optimization, and so on.
-
-# Use With Dub
-
-Easy to do, will explain later
