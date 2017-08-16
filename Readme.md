@@ -1,15 +1,30 @@
 # Overview
 
-D is a nice programming language, but I make my living doing econometrics, and there aren't many econometrics libraries for D. R has many libraries for econometrics, statistics, data transformation, and just about anything you want to do with data. One solution would be to port all of R's libraries to D. With a few million programmer hours, you could get a good start on that task. 
+D is a nice programming language, but I make my living doing econometrics, and there aren't many econometrics libraries for D. R has many libraries for econometrics, statistics, data transformation, and just about anything you want to do with data. One solution would be to port all of R's libraries to D. With a few million programmer hours, you could get a good start on that task. This package takes the alternative approach of facilitating communication between D and R. This can be done in two ways:
 
-I took an alternative route. I used the excellent [RInside](https://github.com/eddelbuettel/rinside) to embed an R interpreter inside my D program. Data is passed efficiently because everything in R is a C struct (SEXPREC). These SEXPREC structs are allocated in either D or R and pointers to them are passed around.
+**Calling D functions from R.** The main program is written in R, but bottlenecks and anything for which D is better are written in D. The D functions are then compiled into a shared library and loaded into R. This procedure is commonly used to call C, C++, and Fortran code from R. This approach has the advantage that an R user can call D functions without knowing anything about D. There is currently support for Linux using DMD and Windows using LDC. LDC support for Linux and Mac will be added in the future.
 
-This is a tutorial to help you get started. Everything here is Linux only. It will work on Windows and Mac as well, because the communication is done by RInside (which works on all three OSes), but I don't know much about them. If you are using Windows 10, you can use Bash on Windows. If you want to use Docker, I've got a Dockerfile and explanation of how to use it [here](https://lancebachmeier.com/embedr/dockerusage.html).
+**Calling R functions from D.** You can use the excellent [RInside](https://github.com/eddelbuettel/rinside) to embed an R interpreter inside your D program. Data is passed efficiently because everything in R is a C struct (SEXPREC). These SEXPREC structs are allocated in either D or R and pointers to them are passed between the two languages. The advantage of this approach is that all of R is available to D programs. There is currently support only for Linux using DMD. I plan to support Windows and Mac as well as the other compilers in the future. Note that Docker works well on Windows and Mac, and I've got a Dockerfile and an explanation of how to use it [here](https://lancebachmeier.com/embedr/dockerusage.html).
 
-# Installation
+# Linux Installation (calling D functions from R)
+
+If you only want to call D functions from R, installation is easy.
+
+1\. Install R and the [dmd compiler](http://dlang.org/download.html) (obvious, I know, but I just want to be sure). I recommend updating to the latest version of R.
+2\. Install the embedr package using devtools:
+
+```
+install_bitbucket("bachmeil/embedr")
+```
+
+That is it. If you have a standard installation (i.e., as long as you haven't done something strange to cause libR.so to be hidden in a place the system can't find it) you are done.
+
+# Linux Installation (calling R functions from D)
+
+Embedding R inside D requires you to install a slightly modified version of the RInside package in addition to everything above.
 
 1\. Install R and the [dmd compiler](http://dlang.org/download.html) (obvious, I know, but I just want to be sure). I recommend updating to the latest version of R.  
-2\. Install my slightly modified version of RInside, called [RInsideC](https://bitbucket.org/bachmeil/rinsidec) using devtools. In R:
+2\. Install [RInsideC](https://bitbucket.org/bachmeil/rinsidec) using devtools. In R:
     
 ```
 library(devtools)
@@ -23,7 +38,38 @@ install_bitbucket("bachmeil/embedr")
 ```
 
 That is it. If you have a standard installation (i.e., as long as you haven't done something strange to cause libR.so to be hidden in a place the system can't find it) you are done.
+
+# Windows Installation (calling D functions from R)
+
+This is a little trickier for a variety of reasons. The only recommended
+approach at this time is to let the embedr package install the LDC
+compiler and do the configuration for you.
+
+1\. Install R. I recommend updating to the latest version of R.  
+2\. Install the embedr package using devtools:
+
+```
+library(devtools)
+install_bitbucket("bachmeil/embedr")
+```
     
+3\. Install the LDC compiler and configure everything:
+
+```
+library(embedr)
+ldc.install()
+embedr.configure()
+```
+
+You should be done at this point. I cannot guarantee that, however, due
+to problems with directories being changed by Windows to read-only status.
+
+# Examples
+
+To come...
+
+The examples below will work on Linux.
+
 # Hello World
 
 Let's start with an example that has R print "Hello, World!" to the screen. Put the following code in a file named hello.d:

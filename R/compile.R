@@ -147,11 +147,11 @@ ldc.install <- function(download=TRUE) {
 		dir.create(loc)
 	}
 	if (download) {
-		download.file("https://github.com/ldc-developers/ldc/releases/download/v1.3.0-beta2/ldc2-1.3.0-beta2-win64-msvc.zip", 
-			paste0(loc, "/ldc2-1.3.0-beta2-win64-msvc.zip"))
+		download.file("https://github.com/ldc-developers/ldc/releases/download/v1.3.0/ldc2-1.3.0-win64-msvc.zip", 
+			paste0(loc, "/ldc2-1.3.0-win64-msvc.zip"))
 	}
-	cat("Unzipping ", loc, "/ldc2-1.3.0-beta2-win64-msvc.zip into ", loc, "\n", sep="")
-	unzip(paste0(loc, "/ldc2-1.3.0-beta2-win64-msvc.zip"), exdir=loc)
+	cat("Unzipping ", loc, "/ldc2-1.3.0-win64-msvc.zip into ", loc, "\n", sep="")
+	unzip(paste0(loc, "/ldc2-1.3.0-win64-msvc.zip"), exdir=loc)
 }
 
 embedr.configure <- function() {
@@ -159,8 +159,8 @@ embedr.configure <- function() {
 	if (!dir.exists(loc)) {
 		dir.create(loc)
 	}
-	file.copy(paste0(find.package("embedrwin")[1], "/embedrwin/r.d"), loc, overwrite=TRUE)
-	file.copy(paste0(find.package("embedrwin")[1], "/embedrwin/r.lib"), loc, overwrite=TRUE)
+	file.copy(paste0(find.package("embedr")[1], "/embedr/r.d"), loc, overwrite=TRUE)
+	file.copy(paste0(find.package("embedr")[1], "/embedr/r.lib"), loc, overwrite=TRUE)
 	file.copy(paste0(R.home(), "/bin/x64/R.dll"), loc, overwrite=TRUE)
 }
 
@@ -172,13 +172,13 @@ checkSetup <- function(output=FALSE) {
 
     origloc <- getwd()
     setwd(loc)
-    embedrwinloc <- find.package("embedrwin")[1]
+    embedrwinloc <- find.package("embedr")[1]
 
     if (!file.exists("R.lib")) {
-        file.copy(paste0(embedrwinloc, "/embedrwin/r.lib"), loc)
+        file.copy(paste0(embedrwinloc, "/embedr/r.lib"), loc)
     }
     if (!file.exists("r.d")) {
-        file.copy(paste0(embedrwinloc, "/embedrwin/r.d"), loc)
+        file.copy(paste0(embedrwinloc, "/embedr/r.d"), loc)
     }
     if (!file.exists("R.dll")) {
         file.copy(paste0(R.home(), "/bin/x64/R.dll"), loc)
