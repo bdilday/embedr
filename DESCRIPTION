@@ -1,8 +1,8 @@
 Package: embedr
 Type: Package
-Title: Embed R in D programs
-Version: 0.62
-Date: 2016-10-11
+Title: Embed R in D programs and vice versa
+Version: 0.7
+Date: 2017-08-16
 Author: Lance Bachmeier
 Maintainer: Lance Bachmeier <lanceb@ksu.edu>
 Description: Write D programs that can pass data to and from R

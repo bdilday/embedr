@@ -2,5 +2,8 @@ export(
 	"dmd",
 	"reload.embedr",
 	"compile",
-	"compileFile"
+	"compileFile",
+	"ldc",
+	"ldc.install",
+	"embedr.configure"
 )
