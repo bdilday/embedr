@@ -81,7 +81,7 @@ Save this code in a file called librtest.d:
 ```
 extern(C) {
   Robj add(Robj rx, Robj ry) {
-		double result = rx.scalar + ry.scalar;
+    double result = rx.scalar + ry.scalar;
     return result.robj;
   }
 }
@@ -111,7 +111,7 @@ mixin(createRLibrary("rtest"));
 
 export extern(C) {
   Robj add(Robj rx, Robj ry) {
-		double result = rx.scalar + ry.scalar;
+    double result = rx.scalar + ry.scalar;
     return result.robj;
   }
 }
