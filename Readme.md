@@ -66,9 +66,78 @@ to problems with directories being changed by Windows to read-only status.
 
 # Examples
 
+Note that Windows requires an explicit export attribute when defining a
+function that is to be included as part of a shared library. I present
+both versions of the simple example to clarify that, but for the other examples
+you will have to add the export attribute. There are some other differences
+in the Linux and Windows versions. These are due to the fact that those
+functions were created at different times, and I have not yet had time
+to make things consistent. I will eventually get around to doing that.
+
+# Simple Example (Linux)
+
+Save this code in a file called librtest.d:
+
+```
+extern(C) {
+  Robj add(Robj rx, Robj ry) {
+		double result = rx.scalar + ry.scalar;
+    return result.robj;
+  }
+}
+```
+
+Then in R, from the same directory as librtest.d, create and load the
+shared library using the `dmd` function:
+
+```
+compileFile("librtest.d", "rtest")
+```
+
+Test it out:
+
+```
+.Call("add", 2.5, 3.65)
+```
+
+# Simple Example (Windows)
+
+The same thing can be achieved in Windows as follows. Save this code in
+librtest.d:
+
+```
+import embedr.r;
+mixin(createRLibrary("rtest"));
+
+export extern(C) {
+  Robj add(Robj rx, Robj ry) {
+		double result = rx.scalar + ry.scalar;
+    return result.robj;
+  }
+}
+```
+
+In the same directory as librtest.d, create and load the DLL:
+
+```
+ldc("librtest")
+```
+
+Test it out:
+
+```
+.Call("add", 2.5, 3.65)
+```
+
+# Explanation of the Simple Example
+
 To come...
 
-The examples below will work on Linux.
+
+
+# Embedding R Inside D
+
+The examples that follow work on Linux, but are for embedding R inside D.
 
 # Hello World
 
