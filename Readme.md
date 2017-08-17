@@ -64,7 +64,7 @@ embedr.configure()
 You should be done at this point. I cannot guarantee that, however, due
 to problems with directories being changed by Windows to read-only status.
 
-# Examples
+# Examples: Calling D Functions From R
 
 Note that Windows requires an explicit export attribute when defining a
 function that is to be included as part of a shared library. I present
