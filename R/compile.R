@@ -60,32 +60,40 @@ dmd <- function(name, dlibs="", other="", run=TRUE) {
   }
 }
 
+# Private function
+boilerplate <- function(libname, add.init="", add.unload="") {
+	att <- if (Sys.info()[['sysname']] == "Windows") {
+		"export "
+	} else {
+		""
+	}
+	return(paste0('import core.runtime;
+import embedr.r;
+
+struct DllInfo;
+
+', att, 'extern(C) {
+	void R_init_lib', libname, '(DllInfo * info) {
+', add.init, '
+		Runtime.initialize();
+	}
+	
+	void R_unload_lib', libname, '(DllInfo * info) {
+', add.unload, '
+		Runtime.terminate();
+	}
+}
+
+'))
+}
+
 # For right now, this only accommodates files that make use of Gretl
 compile <- function(code, libname, deps="", other="", rebuild=FALSE) {
 	if (file.exists(paste0("lib", libname, ".so")) & !rebuild) {
 	  dyn.load(paste0("lib", libname, ".so"))
 		return("Dynamic library already exists - pass argument rebuild=TRUE if you want to rebuild it.")
 	}
-	cat('import core.runtime;
-import embedr.r, gretl.base;
-
-struct DllInfo;
-
-extern(C) {
-	void R_init_lib', libname, '(DllInfo * info) {
-		gretl_rand_init();
-		Runtime.initialize();
-	}
-	
-	void R_unload_lib', libname, '(DllInfo * info) {
-		Runtime.terminate();
-	}
-}
-
-', 
-code, 
-'
-', file="__tmp__compile__file.d", sep="")
+	cat(boilerplate(libname), code, file="__tmp__compile__file.d", sep="")
 	# Save code to file with temporary name
 	apiModule <- paste0(find.package("embedr")[1], "/embedr/r.d")
 	
