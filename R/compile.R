@@ -121,7 +121,7 @@ compileFile <- function(filename, libname, deps="", other="", rebuild=FALSE) {
 # Only LDC can be used to produce shared libraries on Windows
 defaultCompile <- function(filename) {
 	loc <- paste0(path.expand("~"), "/embedr")
-	compiler <- paste0('"', loc, '/ldc/ldc2-1.3.0-beta2-win64-msvc/bin/ldmd2.exe"')
+	compiler <- paste0('"', loc, '/ldc/ldc2-1.3.0-win64-msvc/bin/ldmd2.exe"')
 	module <- paste0('"', loc, '/r.d"')
 	lib <- paste0('"', loc, '/R.lib"')
 	cmd <- paste0(compiler, " -shared -m64 ", filename, ".d ", module, " -version=inline ", lib)
