@@ -160,6 +160,27 @@ dmd("hello")
 
 This will tell dmd to compile your file, handling includes and linking for you, and then run it for you. You should see "Hello, World!" printed somewhere. The other examples are the same: save the code in a .d file, then call the dmd function to compile and run it.
 
+# Using Dub
+
+I do not normally use Dub. However, many folks do, and if you want to
+add dependencies on other libraries like Mir, you don't have much choice
+but to use Dub.
+
+Here's the dub.sdl file I used to compile the Hello World example above:
+
+```
+name "myproject"
+description "embedr hello world"
+authors "lance"
+copyright "Copyright 2018, lance"
+license "GPLv2"
+versions "r" "standalone"
+lflags "/usr/lib/libR.so" "/usr/local/lib/R/site-library/RInsideC/lib/libRInside.so"
+```
+
+The `lflags` paths may be different on your machine, and they definitely
+will be different if you're not using Linux.
+
 # Passing a Matrix From D to R
 
 Let's write a program that tells R to allocate a (2x2) matrix, fills the elements in D, and prints it out in both D and R.
